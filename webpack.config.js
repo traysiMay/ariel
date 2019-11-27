@@ -3,7 +3,7 @@ const webpack = require("webpack"); //to access built-in plugins
 const path = require("path");
 
 module.exports = {
-  mode: "development",
+  mode: "production",
   entry: {
     main: "./src/index.js"
   },
@@ -11,14 +11,22 @@ module.exports = {
     filename: "main.js",
     path: path.resolve(__dirname, "dist")
   },
-  plugins: [new HtmlWebpackPlugin({ template: "./views/index.html" }),
-           new webpack.ProvidePlugin({
-		'THREE': 'three'
-	})],
+  plugins: [
+    new HtmlWebpackPlugin({ template: "./views/index.html" }),
+    new webpack.ProvidePlugin({
+      THREE: "three"
+    })
+  ],
   resolve: {
-	alias: {
-		'three/OrbitControls': path.join(__dirname, 'node_modules/three/examples/js/controls/OrbitControls.js'),
-		'three/SVGLoader': path.join(__dirname, 'node_modules/three/examples/js/loaders/SVGLoader.js')
-	}
-},
+    alias: {
+      "three/OrbitControls": path.join(
+        __dirname,
+        "node_modules/three/examples/js/controls/OrbitControls.js"
+      ),
+      "three/SVGLoader": path.join(
+        __dirname,
+        "node_modules/three/examples/js/loaders/SVGLoader.js"
+      )
+    }
+  }
 };

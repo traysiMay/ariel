@@ -2,77 +2,23 @@
 // run by the browser each time your view template is loaded
 
 // Extract globals, otherwise linting gets angry
-import chroma from 'chroma-js'
-import * as THREE from 'three'
-import 'three/OrbitControls';
-import 'three/SVGLoader';
-import {onMouseMove} from './utils.js'
+import chroma from "chroma-js";
+import * as THREE from "three";
+import "three/OrbitControls";
+import "three/SVGLoader";
+import { onMouseMove, loadSVG } from "./utils.js";
 var raycaster = new THREE.Raycaster();
 var mouse = new THREE.Vector2();
 var click = false;
-var loader = new THREE.SVGLoader();
-var material_name;
-
-const a = 'https://cdn.glitch.com/af370b6d-3f32-47c5-aa5d-adafb6a739ab%2Farielklevecz4.svg?v=1574731449642'
-// load a SVG resource
-loader.load(
-  // resource URL
-  a,
-  // called when the resource is loaded
-  function(data) {
-    var paths = data.paths;
-    console.log('cream')
-    window.data = data
-    var group = new THREE.Group();
-    group.scale.multiplyScalar(0.1);
-    group.position.x = -20;
-    group.position.y = 7;
-    group.position.z = -10;
-    group.scale.y *= -1;
-   
- material_name = new THREE.MeshBasicMaterial({
-        color: 0xff00ff,
-        side: THREE.DoubleSide,
-        depthWrite: false
-      });
-    for (var i = 0; i < paths.length; i++) {
-      var path = paths[i];
-     
-
-      var shapes = path.toShapes(true);
-
-      for (var j = 0; j < shapes.length; j++) {
-        var shape = shapes[j];
-        var geometry = new THREE.ShapeBufferGeometry(shape);
-
-        var mesh = new THREE.Mesh(geometry, material_name);
-        // mesh.rotation.x = Math.PI / 2;
-        group.add(mesh);
-      }
-    }
-    var pgeo = new THREE.PlaneBufferGeometry(1, 1, 1);
-    var mesh = new THREE.Mesh(pgeo, material);
-    mesh.name = "ariel"
-    scene.add(group);
-    scene.add(mesh)
-  },
-  // called when loading is in progresses
-  function(xhr) {
-    console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-  },
-  // called when loading has errors
-  function(error) {
-    console.log("An error happeneda");
-  }
-);
 
 // Create a scene
 var camera, scene, renderer, clock, stats;
 var dirLight, spotLight;
 var sphere, dirGroup;
 var ground;
-var material;
+var material_name;
 init();
+loadSVG(scene);
 animate();
 function init() {
   initScene();
@@ -90,7 +36,6 @@ function initScene() {
   );
   camera.position.set(0, 10, 30);
   scene = new THREE.Scene();
-  // scene.fog = new THREE.Fog( 0xCCCCCC, 50, 100 );
   // Lights
   scene.add(new THREE.AmbientLight(0x000000));
   spotLight = new THREE.SpotLight(0xffffff);
@@ -136,7 +81,7 @@ function initScene() {
   sphere.position.y = 3;
   sphere.castShadow = true;
   sphere.receiveShadow = false;
-  sphere.name = 'chicken'
+  sphere.name = "chicken";
   scene.add(sphere);
 
   var geometry = new THREE.PlaneBufferGeometry(10, 10);
@@ -147,11 +92,11 @@ function initScene() {
   });
   ground = new THREE.Mesh(geometry, material);
   ground.rotation.x = -Math.PI / 2;
-  ground.position.y -= 1;
+  ground.position.y -= 5;
   ground.scale.multiplyScalar(3);
   ground.castShadow = true;
   ground.receiveShadow = true;
-  // scene.add(ground);
+  scene.add(ground);
 }
 function initMisc() {
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -163,6 +108,7 @@ function initMisc() {
   // Mouse control
   var controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 2, 0);
+  controls.maxPolarAngle = Math.PI / 2;
   controls.update();
   clock = new THREE.Clock();
 }
@@ -182,33 +128,40 @@ function render() {
   var delta = clock.getDelta();
   var time = clock.elapsedTime;
   renderScene();
-
   if (click) {
     raycaster.setFromCamera(mouse, camera);
     // calculate objects intersecting the picking ray
-    // scene.children.map(c => c.material && c.material.color.set(0xFFFFFF))
     var intersects = raycaster.intersectObjects(scene.children);
 
     for (var i = 0; i < intersects.length; i++) {
-      console.log(intersects[i].object.name)
+      console.log(intersects[i].object.name);
       intersects[i].object.material.color.set(0xff0000);
-      if (intersects[i].object.name === 'ariel') material_name.color.set(0x000000)
+      if (intersects[i].object.name === "chicken") {
+        // material_name.color.set(0x000000);
+        var ariel_material = scene.children.filter(f => f.name === "ariel")[0]
+          .children[0].material;
+        ariel_material.color.set(0xff0000);
+      }
     }
   }
-  mouse = {x:9999,y:-9999}
+  mouse = { x: 9999, y: -9999 };
   sphere.rotation.x += 0.25 * delta;
   sphere.rotation.y += 2 * delta;
   sphere.rotation.z += 1 * delta;
-  const randomColor = chroma.random()
-  sphere.material.color = new THREE.Color(randomColor.hex());
+  const randomColor = chroma.random();
+  // sphere.material.color = new THREE.Color(randomColor.hex());
 
   // dirGroup.rotation.y += 0.7 * delta;
   // dirLight.position.z = 17 + Math.sin(time*0.001)*5;
 }
 
 // window.addEventListener("touchstart",onMouseMove, false);
-window.addEventListener("click",(e) => {
-const m =  onMouseMove(e, mouse)
-click = true
-mouse = m
-}, false);
+window.addEventListener(
+  "click",
+  e => {
+    const m = onMouseMove(e, mouse);
+    click = true;
+    mouse = m;
+  },
+  false
+);
